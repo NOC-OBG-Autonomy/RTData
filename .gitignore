@@ -172,3 +172,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+#Configuration private token (use the config template instead)
+config.py
+
+#Temp folder to test data download
+temp

@@ -154,5 +154,5 @@ if __name__ == '__main__':
     # test.to_csv('C:/Users/flapet/OneDrive - NOC/Documents/NRT_viz/biocarbon_nrt_data_viz/Data/Gliders/current.csv')
 
     #DOcumentation : https://api.c2.noc.ac.uk/timeseries/doc
-    ts = get_observations(config.token, 'slocum', 'unit_405', variables=["sci_water_pressure", "sci_water_temp",  "sci_water_cond", "m_lon", "m_lat", "sci_flbbcd_chlor_units", "sci_flbbcd_bb_units", "m_time", "sci_oxy4_oxygen"])
-    ts.to_csv('C:/Users/flapet/OneDrive - NOC/Documents/NRT_viz/biocarbon_nrt_data_viz/Data/Gliders/glider_ts_345.csv')
+    ts = get_observations(config.token, 'slocum', 'unit_306', variables=["sci_water_pressure", "sci_water_temp",  "sci_water_cond", "m_lon", "m_lat", "sci_flbbcd_chlor_units", "sci_flbbcd_bb_units", "m_time", "sci_oxy4_oxygen"])
+    ts.to_csv('C:/Users/flapet/OneDrive - NOC/Documents/NRT_viz/biocarbon_nrt_data_viz/Data/Gliders/glider_ts_306.csv')
