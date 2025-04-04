@@ -8,6 +8,14 @@ import simplekml
 
 
 def get_positions(token, platform_type, platform_serial, test = False):
+    """Returns the JSON response of the gliders positions 
+
+    Args:
+        token (str): Your C2 API token (should be inside you config.py)
+        platform_type (str): Platform type
+        platform_serial (str): Patlform serial
+        test (bool, optional): Work on the test or prod environment. Defaults to False.
+    """    
     
     if test == False:
         api_url = "https://api.c2.noc.ac.uk/positions/positions" 
@@ -40,6 +48,11 @@ def get_positions(token, platform_type, platform_serial, test = False):
         print(response.text)
 
 def convert_positions(json_pos):
+    """Create a dataframe from the json position message.
+
+    Args:
+        json_pos (str): The json message returned by get_position function
+    """    
     import pandas as pd
     data = pd.DataFrame(json_pos)
     my_pos = data['positions'].iloc[0]
@@ -119,6 +132,14 @@ def create_kml_point(glider, longitude, latitude, m_water_x, m_water_y, output_f
 
 
 def get_observations(token, platform_type, platform_serial, variables):
+    """Returns the observation data (different from position data) from the C2 API.
+
+    Args:
+        token (str): Your C2 API token
+        platform_type (str): Platform type (e.g. slocum)
+        platform_serial (str): Platform type (e.g. unit_999)
+        variables (list): a list of variables you want to extract
+    """    
     api_url = "https://api.c2.noc.ac.uk/timeseries/observations/csv" 
 
 
