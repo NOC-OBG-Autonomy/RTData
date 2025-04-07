@@ -170,6 +170,7 @@ def get_observations(token, platform_type, platform_serial, variables):
         print(f"Error: {response.status_code}")
         print(response.text)
 
+
 if __name__ == '__main__':
 
     # test = get_observations(config.token, 'slocum', ['unit_397', 'unit_405', 'unit_398', 'unit_345'], variables = ["m_water_vy", "m_water_vx", "m_lat", "m_lon", "m_time"])
