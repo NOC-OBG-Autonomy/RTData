@@ -31,6 +31,8 @@ for unit in config.gliders_units:
     last_time = u["timestamp"].max()
     u = u['value'].iloc[-1]
     u_list.append(u)
+
+    c2.create_kml_line(pos, config.save_path + unit + "_line.kmz", "990000ff")
     print("Done")
 
 
