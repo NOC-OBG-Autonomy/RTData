@@ -7,7 +7,7 @@ import io
 import simplekml
 
 
-def get_positions(token, platform_type, platform_serial, test = False):
+def get_positions(token, platform_type, platform_serial, test = False, start_date = "2025-03-15T18:57"):
     """Returns the JSON response of the gliders positions 
 
     Args:
@@ -15,10 +15,11 @@ def get_positions(token, platform_type, platform_serial, test = False):
         platform_type (str): Platform type
         platform_serial (str): Patlform serial
         test (bool, optional): Work on the test or prod environment. Defaults to False.
+        start_date (date string): the first date of your query (try to limit the size of your queries)
     """    
     
     if test == False:
-        api_url = "https://api.c2.noc.ac.uk/positions/positions" 
+        api_url = "https://api.c2.noc.ac.uk/positions/positions"  
     if test == True :
         api_url = "https://api-test.c2.noc.ac.uk/positions/positions" 
 
@@ -30,7 +31,7 @@ def get_positions(token, platform_type, platform_serial, test = False):
     params = {
     "platform_type": platform_type,
     "platform_serial": platform_serial,
-    "from": "2024-05-28T18:57",
+    "from": start_date,
     "time_order" : "descending"
     }
 
