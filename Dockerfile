@@ -1,39 +1,30 @@
-# ---- Build stage ----
-FROM python:3.12-slim AS builder
+FROM python:3.12-slim
 
-# System deps
-RUN apt-get update && apt-get install -y curl git build-essential
+# Install system dependencies
+RUN apt-get update && apt-get install -y curl build-essential git
 
-# Install poetry
+# Install Poetry
 ENV POETRY_VERSION=1.8.2 \
-    POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_NO_INTERACTION=1
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false
 
 RUN curl -sSL https://install.python-poetry.org | python3 - \
     && ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 
-# Set workdir
+# Set working directory
 WORKDIR /app
 
-# Copy pyproject & lock first (for caching)
+# Copy pyproject and lock
 COPY pyproject.toml poetry.lock* ./
 
 # Install dependencies
 RUN poetry install --only main
 
-# Copy full code
+# Copy rest of code
 COPY . .
 
-# Optional: confirm install
-RUN python -c "import rtdata; print('✅ rtdata installed')"
+# Set PYTHONPATH to find local packages
+ENV PYTHONPATH=/app
 
-# ---- Runtime stage ----
-FROM python:3.12-slim
-
-WORKDIR /app
-
-# Copy from builder
-COPY --from=builder /app /app
-
-# Set command to run your script
+# Run your script
 CMD ["python", "plotting/Gearth.py"]
