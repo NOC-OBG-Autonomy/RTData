@@ -15,6 +15,7 @@ copernicusmarine = "^2.0.1"
 matplotlib = "^3.10.1"
 numpy = "^2.2.4"
 geopandas = "^1.0.1"
+netcdf4 = "^1.7.2"
 
 
 [build-system]

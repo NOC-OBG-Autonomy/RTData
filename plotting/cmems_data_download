@@ -9,7 +9,7 @@ import numpy as np
 
 from rtdata import config
 from rtdata.c2_api import api_interface as c2
-from rtdata.satellite_utils import cmem_download_utils as CMEM_dl_util
+from rtdata.satellite_utils import cmems_download_utils as CMEM_dl_util
 
 ## Date and time setup
 
@@ -57,6 +57,10 @@ for dataset_to_extract in datasets_to_extract:
     if "_obs-" in dataset_to_extract:
         saved_netCDF_as = f"{start_timelabel}_{end_timelabel}_observed_currents.nc"
         filepath = os.path.join(config.save_path, saved_netCDF_as)
+
+    # Remove existing file if it exists to allow overwriting
+    if os.path.exists(filepath):
+        os.remove(filepath)
 
     # Perform the data subset operation
     cpm.subset(
