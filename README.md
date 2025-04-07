@@ -39,7 +39,7 @@ pipx install poetry
 ### 3. **Install dependencies**
 run
 ```bash
-petry install
+poetry install
 ```
 This command will:
 

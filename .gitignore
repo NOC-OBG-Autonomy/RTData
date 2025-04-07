@@ -178,3 +178,6 @@ config.py
 
 #Temp folder to test data download
 temp
+
+#Data folder
+data
