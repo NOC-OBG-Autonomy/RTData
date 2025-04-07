@@ -16,7 +16,7 @@ vpn_access = False #Changing this to True will lead to a request to the broker
 #Saving folders
 save_path = "path/to/save/files/"
 
-#broker
+#broker (usefull if ship position is needed)
 broker = "seasystems.noc.soton.ac.uk"
 port = 1883
 topic = "topic/path"
