@@ -178,7 +178,7 @@ if __name__ == '__main__':
 
     #DOcumentation : https://api.c2.noc.ac.uk/timeseries/doc
     unit_name = "unit_306"
-    path_of_file = config.save_path + unit_name + '_ts.csv'
+    path_of_file = f'{config.save_path}/{unit_name}_ts.csv'
     ts = get_observations(config.token, 'slocum', unit_name, variables=["sci_water_pressure", "sci_water_temp",  "sci_water_cond", "m_lon", "m_lat", "sci_flbbcd_chlor_units", "sci_flbbcd_bb_units", "m_time", "sci_oxy4_oxygen"])
     ts.to_csv(path_of_file)
     print(f"File {path_of_file} saved")
