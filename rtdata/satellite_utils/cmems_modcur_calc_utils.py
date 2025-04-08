@@ -1,14 +1,14 @@
 import os
+import netCDF4
 import xarray as xr
 import numpy as np
 from datetime import datetime, timedelta
 import json
-import netCDF4
 
 from rtdata import config
 
 
-def get_filepath_from_json(json_file, match_str, base_path):
+def get_filepath_from_json(json_file, match_str):
     """
     Load a filename from a JSON file that contains `match_str`, and return its full path and base name.
     
@@ -21,16 +21,18 @@ def get_filepath_from_json(json_file, match_str, base_path):
         tuple: (full_path, filename_base)
     """
 
-    with open(json_file, 'r') as f:
+    json_file_loc = os.path.join(config.save_path,json_file)
+
+    with open(json_file_loc, 'r') as f:
         data = json.load(f)
     print(data)
     filename_in_json = next((file for section in data.values() for file in section if match_str in file), None)
     
     if not filename_in_json:
-        raise FileNotFoundError(f"No file containing '{match_str}' found in {json_file}")
+        raise FileNotFoundError(f"No file containing '{match_str}' found in {json_file_loc}")
     
-    filepath = os.path.join(base_path, filename_in_json)
-    filename_base = os.path.splitext(filename_in_json)[0]
+    filepath = os.path.join(filename_in_json)
+    filename_base = os.path.basename(filepath)
     
     return filepath, filename_base
 
@@ -101,39 +103,46 @@ def save_dataset(ds, filename, out_dir):
     output_path = os.path.join(out_dir, filename)
     ds.to_netcdf(output_path)
     print(f"Saved to {output_path}")
-    return filename
+    return output_path
 
 
 def update_json_file(json_path, filenames, category="processed data"):
     """
     Update a JSON file with new filenames under a specified category.
-    
     """
-    if os.path.exists(json_path):
-        with open(json_path, 'r') as f:
+
+    json_file_loc = os.path.join(config.save_path,json_path)
+
+    # Check if the JSON file exists, if not create an empty structure
+    if os.path.exists(json_file_loc):
+        with open(json_file_loc, 'r') as f:
             data = json.load(f)
     else:
         data = {}
-    print(data)
+
+    # Ensure the category exists in the data structure
     if category not in data:
         data[category] = []
 
+    # Add the new filenames with the full path
     data[category].extend(filenames)
 
-    with open(json_path, 'w') as f:
+    # Write the updated data back to the JSON file
+    with open(json_file_loc, 'w') as f:
         json.dump(data, f, indent=4)
-    print(f"Updated filenames saved to {json_path}")
+
+    print(f"Updated filenames saved to {json_file_loc}")
 
 
-def process_currents(json_file, match_str, data_dir):
+def cmems_process_currents(json_file='cmems_prod_config.json', match_str='model_currents.nc'):
     """
     Process CMEMS model current products into 1000m only and depth averaged products.
-    
+
     """
 
-    filepath = get_filepath_from_json(json_file, match_str, data_dir)
+    filepath, filenamebase = get_filepath_from_json(json_file, match_str)
 
-    ds = xr.open_dataset(filepath[0])
+    ds = xr.open_dataset(filepath)
 
     # 1. Extract 1000m depth bin
     ds_1000m = extract_depth_bin(ds, var_names=['uo', 'vo'], depth_value=1000)
@@ -142,20 +151,17 @@ def process_currents(json_file, match_str, data_dir):
     averaged_ds = compute_weighted_average(ds, var_names=['uo', 'vo'])
 
     # 3. Save outputs
-    file_1000m = save_dataset(ds_1000m, f'{filepath[1]}_1000m.nc', data_dir)
-    file_avg   = save_dataset(averaged_ds, f'{filepath[1]}_averaged.nc', data_dir)
+    filenamebase = os.path.splitext(filenamebase)[0]
+    
+    # Save datasets and get full paths
+    file_1000m = save_dataset(ds_1000m, f'{filenamebase}_1000m.nc', config.save_path)
 
-    # 4. Update JSON
+    file_avg   = save_dataset(averaged_ds, f'{filenamebase}_averaged.nc', config.save_path)
+
+    # 4. Update JSON with full file paths
     update_json_file(json_file, [file_avg, file_1000m])
 
 
 if __name__ == '__main__':
 
-    #filepath = get_filepath_from_json('data/filenames.json','model_currents.nc','data')
-    #ds = xr.open_dataset(filepath[0])
-    #ds_1000m = extract_depth_bin(ds,['uo','vo'],1000)
-    #averaged_ds = compute_weighted_average(ds, var_names=['uo', 'vo'])
-    #file_1000m = save_dataset(ds_1000m, f'{filepath[1]}_1000m.nc', 'data/')
-    #file_avg   = save_dataset(averaged_ds, f'{filepath[1]}_averaged.nc', 'data/')
-
-    process_currents('data/filenames.json', 'model_currents.nc', 'data/')
+    process_currents()
