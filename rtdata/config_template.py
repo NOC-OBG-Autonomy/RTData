@@ -13,6 +13,10 @@ token = "your token in the prod env"
 token_test = "your token in the test env"
 vpn_access = False #Changing this to True will lead to a request to the broker
 
+#Credentials for Copernicus Marine Service (https://data.marine.copernicus.eu/register)
+cpmusername = 'your username for copernicus marine service'
+cpmpassword = 'your password for copernicus marine service'
+
 #Saving folders
 save_path = "path/to/save/files/"
 

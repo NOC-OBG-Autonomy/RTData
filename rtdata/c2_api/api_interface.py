@@ -5,6 +5,7 @@ from datetime import datetime
 from glob import glob
 import io
 import simplekml
+import os
 
 
 def get_positions(token, platform_type, platform_serial, test = False, start_date = "2025-03-15T18:57"):
@@ -83,6 +84,9 @@ def get_last_coordinates(data):
     return last_latitude, last_longitude
 
 def create_kml_line(json_position, output_file, color):
+
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
     kml = simplekml.Kml()
 
     positions = json_position['positions']['internal']
@@ -116,6 +120,8 @@ def create_kml_point(glider, longitude, latitude, m_water_x, m_water_y, output_f
         m_water_y (list): a list of DAC, v component
         output_file (string): the path where the kml file will be saved
     """
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
     kml = simplekml.Kml()
 
     for i in range(len(glider)):
