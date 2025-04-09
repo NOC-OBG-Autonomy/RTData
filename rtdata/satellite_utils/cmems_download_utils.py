@@ -7,7 +7,7 @@ import numpy as np
 import copernicusmarine as cpm
 from pathlib import Path
 import ast
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import statistics
 
 from rtdata import config
@@ -64,12 +64,12 @@ def cmems_data_download(daysprior=2,distance=500):
         json_file_details(list): (full_path, filename_base)
     """
     # Format time as YYYY-MM-DD"T"HH:MM:SS for Copernicus Marine Module
-    current_day = datetime.now()
+    current_day = datetime.combine(datetime.today().date(), time.min)
     end_timelabel = current_day.strftime("%Y%m%d")
-    end_time    = current_day.strftime("%Y-%m-%dT%H:%M:%S")
-    start_time  = current_day - timedelta(days=daysprior)
-    start_timelabel = start_time.strftime("%Y%m%d")
-    start_time  = start_time.strftime("%Y-%m-%dT%H:%M:%S")
+    end_time = current_day.strftime("%Y-%m-%dT%H:%M:%S")
+    start_day = current_day - timedelta(days=daysprior)
+    start_timelabel = start_day.strftime("%Y%m%d")
+    start_time = start_day.strftime("%Y-%m-%dT%H:%M:%S")
 
     ## Location and depths for spatial bounds on data download
 
@@ -124,7 +124,9 @@ def cmems_data_download(daysprior=2,distance=500):
             minimum_depth=min_depth,
             maximum_depth=max_depth,
             output_filename=saved_netCDF_as,
-            output_directory=config.save_path
+            output_directory=config.save_path,
+            username=config.cpmusername,
+            password=config.cpmpassword
         )
 
         filenames.append(filepath)
