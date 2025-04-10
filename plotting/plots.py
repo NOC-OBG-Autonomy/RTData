@@ -34,7 +34,7 @@ def explode_variable_output(fname):
 def plot_processing(df, pres_col='sci_water_pressure', lat_col='m_lat'):
     """
     Processes a DataFrame by filling missing values, dropping nulls, and adding a 'depth' column
-    calculated from pressure and latitude.
+    calculated from pressure and latitude. Also adds an elapsed time column.
 
     args:
         df (polars.DataFrame): The input DataFrame to process.
@@ -50,8 +50,14 @@ def plot_processing(df, pres_col='sci_water_pressure', lat_col='m_lat'):
     # Add a new column 'depth' calculated from pressure and latitude
     df = df.with_columns(
         pl.struct(pres_col, lat_col).map_batches(
-            lambda x: gsw.z_from_p(x.struct.field(pres_col), x.struct.field(lat_col))
+            lambda x: gsw.z_from_p(x.struct.field(pres_col)*10, x.struct.field(lat_col))
         ).alias('depth')
+    )
+
+    # Add a new column 'elapsed_time' as time from deployment start in days
+    df = df.with_columns(
+        ((pl.col('timestamp') - pl.col('timestamp').first())*1e-3/(3600*24))
+        .alias('elapsed_time[d]')
     )
 
     return df
@@ -102,11 +108,56 @@ def plot_transect(df, depth_col='depth', time_col='datetime', exclude=[], hue_no
 
     return fig
 
+def plot_vars_against_depth(df, depth_col='depth', time_col='timestamp', exclude=[]):
+
+    plot_lims = df.select(
+        pl.all().quantile(0.01).name.suffix('_low'),
+        pl.all().quantile(0.99).name.suffix('_high')
+    )
+
+    recent_data = df.filter(
+        ((pl.col('timestamp').last()-pl.col('timestamp'))*1e-3/3600) < 2
+    )
+
+    vars_to_plot = df.columns
+    for var in exclude + [depth_col, time_col]:
+        vars_to_plot.remove(var)
+
+    sns.set_theme()
+
+    ncols = 3
+    nrows = np.ceil(len(vars_to_plot)/ncols).astype(int)
+    fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=(15, 5*nrows))
+    for ax, var in zip(axs.flatten(), vars_to_plot):
+        sns.scatterplot(data=df, x=var, y=depth_col, hue=time_col,
+                        alpha=0.5,
+                        edgecolor=None,
+                        size=0.05,
+                        palette='Blues',
+                        ax=ax,
+                        legend=False)
+        sns.scatterplot(data=recent_data, x=var, y=depth_col,
+                        color='r',
+                        edgecolor=None,
+                        size= 0.1,
+                        ax=ax,
+                        legend=False)
+        xmin, xmax = plot_lims[f'{var}_low'][0], plot_lims[f'{var}_high'][0]
+        pad = 0.2*(xmax-xmin)
+        ax.set(
+            xlim=[xmin-pad, xmax+pad]
+        )
+
+    fig.tight_layout()
+
+    return fig
 
 if __name__ == '__main__':
     test_data = r'C:\Users\ddab1n24\Desktop\Repos\Autonomy_Repos\RTData\outputs\unit_306_ts.csv'
     df = explode_variable_output(test_data)
     plot_df = plot_processing(df)
-    transect_fig = plot_transect(plot_df, exclude=['m_lat', 'm_lon', 'timestamp', 'sci_water_pressure'])
-    transect_fig.savefig('../outputs/transect.png')
+    transect_fig = plot_vars_against_depth(plot_df, time_col='elapsed_time[d]',
+                                           exclude=['datetime', 'timestamp', 'm_lat', 'm_lon'])
+    plt.show(block=True)
+    # transect_fig.savefig('../outputs/transect.png')
 
