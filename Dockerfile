@@ -26,5 +26,11 @@ COPY . .
 # Set PYTHONPATH to find local packages
 ENV PYTHONPATH=/app
 
-# Run your script
-CMD ["python", "plotting/Gearth.py"]
+#Scripts to run
+CMD ["python", "plotting/Gearth.py", "plotting/cmems_kml.py"]
+
+
+#Build the container 
+#docker build --no-cache -t automatic_position .
+#Run the container
+#docker run --rm -v ${PWD}:/app automatic_position
