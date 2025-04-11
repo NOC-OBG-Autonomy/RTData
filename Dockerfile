@@ -27,7 +27,7 @@ COPY . .
 ENV PYTHONPATH=/app
 
 #Scripts to run
-CMD ["python", "plotting/Gearth.py", "plotting/cmems_kml.py"]
+CMD ["python", "plotting/Gearth.py"]
 
 
 #Build the container 

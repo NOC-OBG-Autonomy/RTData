@@ -1,4 +1,8 @@
 from rtdata.c2_api import api_interface as c2
+from rtdata.satellite_utils import cmems_download_utils as cmems_dl
+from rtdata.satellite_utils import cmems_modcur_calc_utils as cmems_cur_pro
+from rtdata.satellite_utils import cmems_kml_file_creation_utils as cmems_kml
+
 from rtdata import config
 
 list_lon = []
@@ -38,3 +42,7 @@ for unit in config.gliders_units:
 
 
 c2.create_kml_point(config.gliders_names, list_lon, list_lat, u_list,  v_list, config.save_path + "datapoint.kmz")
+
+cmems_dl.cmems_data_download()
+cmems_cur_pro.cmems_process_currents()
+cmems_kml.cmems_produce_kmz()
