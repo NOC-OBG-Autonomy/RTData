@@ -1,4 +1,7 @@
+from idlelib.pyparse import trans
+
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import seaborn as sns
 import numpy as np
 import polars as pl
@@ -63,7 +66,7 @@ def plot_processing(df, pres_col='sci_water_pressure', lat_col='m_lat'):
     return df
 
 
-def plot_transect(df, depth_col='depth', time_col='datetime', exclude=[], hue_norm_percentiles=(1, 99)):
+def plot_transect(df, vars_to_plot: list, depth_col='depth', time_col='datetime', hue_norm_percentiles=(1, 99)):
     """
     Creates scatter plots of various variables against depth and time, excluding specified columns.
 
@@ -71,16 +74,11 @@ def plot_transect(df, depth_col='depth', time_col='datetime', exclude=[], hue_no
         df (polars.DataFrame): The input DataFrame to plot.
         depth_col (str, optional): The column name for depth data. Default is 'depth'.
         time_col (str, optional): The column name for time data. Default is 'datetime'.
-        exclude (list, optional): List of column names to exclude from plotting. Default is [].
         hue_norm_percentiles (tuple, optional): Percentiles for normalizing the hue values. Default is (1, 99).
 
     return:
         matplotlib.figure.Figure: The figure containing the plots.
     """
-    # Get the list of variables to plot, excluding specified columns
-    vars_to_plot = df.columns
-    for var in exclude + [depth_col, time_col]:
-        vars_to_plot.remove(var)
 
     # Set the Seaborn theme
     sns.set_theme()
@@ -92,23 +90,24 @@ def plot_transect(df, depth_col='depth', time_col='datetime', exclude=[], hue_no
     for ax, var in zip(axs, vars_to_plot):
         # Calculate the percentiles for hue normalization
         vmin, vmax = np.percentile(df[var].to_numpy(), hue_norm_percentiles)
+        norm = plt.Normalize(vmin=vmin, vmax=vmax)
+        cbar_map = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.summer)
 
         # Create a scatter plot
         sns.scatterplot(
             data=df, x=time_col, y=depth_col, hue=var, edgecolor=None,
-            palette='summer', hue_norm=(vmin, vmax), ax=ax
+            palette='summer', hue_norm=norm, legend=False, ax=ax
         )
-
+        ax.figure.colorbar(cbar_map, ax=ax, pad=0.01, label=f'{var} [units not available]')
         # Set the title and legend for the plot
         ax.set(title=var)
-        ax.legend(loc='upper right')
 
     # Adjust the layout of the figure
     fig.tight_layout()
 
     return fig
 
-def plot_vars_against_depth(df, depth_col='depth', time_col='timestamp', exclude=[]):
+def plot_vars_against_depth(df, vars_to_plot: list, depth_col='depth', time_col='timestamp'):
 
     plot_lims = df.select(
         pl.all().quantile(0.01).name.suffix('_low'),
@@ -118,10 +117,6 @@ def plot_vars_against_depth(df, depth_col='depth', time_col='timestamp', exclude
     recent_data = df.filter(
         ((pl.col('timestamp').last()-pl.col('timestamp'))*1e-3/3600) < 2
     )
-
-    vars_to_plot = df.columns
-    for var in exclude + [depth_col, time_col]:
-        vars_to_plot.remove(var)
 
     sns.set_theme()
 
@@ -148,16 +143,49 @@ def plot_vars_against_depth(df, depth_col='depth', time_col='timestamp', exclude
             xlim=[xmin-pad, xmax+pad]
         )
 
-    fig.tight_layout()
+    # Adding time colourbar
+    fig.subplots_adjust(top=0.95, bottom=0.4/nrows, left=0.075, right=0.975, wspace=0.3, hspace=0.2)
+    last_row = axs.flatten()[-3:]
+    l, r = (last_row[0].get_position().get_points()[0, 0],
+            last_row[-1].get_position().get_points()[1, 0])
+    plot_dims = last_row[0].get_position().get_points()  # [[x0, y0], [x1, y1]]
+    h = (plot_dims[1, 1] - plot_dims[0, 1]) * 0.1
+    b = plot_dims[0, 1]-h*3
+    cbar_ax = fig.add_axes((l, b, r-l, h))
+
+    time = df['timestamp'].to_numpy()*1e-3/(3600*24)
+    time = time-time[0]
+    vmin, vmax = time.min(), time.max()
+    norm = plt.Normalize(vmin=vmin, vmax=vmax)
+    cbar_map = mpl.cm.ScalarMappable(norm=norm, cmap=mpl.cm.Blues)
+    fig.colorbar(cbar_map, cax=cbar_ax, orientation='horizontal', label='Time [D]')
+
+    # annotation for red dot
+    pos = (l+0.03, b-0.03)
+    circle = mpl.patches.Circle(pos, radius=0.005,
+                                transform=fig.transFigure,
+                                facecolor='#C44E52')
+    fig.patches.append(circle)
+    fig.text(pos[0]+0.01, pos[1], 'Last 2h',
+             transform=fig.transFigure,
+             verticalalignment='center')
 
     return fig
+
+def plot_all(df, time_col):
+    return
 
 if __name__ == '__main__':
     test_data = r'C:\Users\ddab1n24\Desktop\Repos\Autonomy_Repos\RTData\outputs\unit_306_ts.csv'
     df = explode_variable_output(test_data)
     plot_df = plot_processing(df)
-    transect_fig = plot_vars_against_depth(plot_df, time_col='elapsed_time[d]',
-                                           exclude=['datetime', 'timestamp', 'm_lat', 'm_lon'])
-    plt.show(block=True)
-    # transect_fig.savefig('../outputs/transect.png')
 
+    depth_var_fig = plot_vars_against_depth(plot_df, plot_df.columns[1:])
+    depth_var_fig.savefig('../outputs/varsvdepth.png')
+
+    transect_fig = plot_transect(plot_df, plot_df.columns[1:])
+    transect_fig.savefig('../outputs/transects.png')
+
+
+# n variables: n + np.ceil(n/3) rows for 3 columns
+# +1 rows for colourbars
