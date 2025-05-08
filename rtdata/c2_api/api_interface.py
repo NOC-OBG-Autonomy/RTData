@@ -83,7 +83,7 @@ def get_last_coordinates(data):
     
     return last_latitude, last_longitude
 
-def create_kml_line(json_position, output_file, color):
+def create_kml_line(json_position, output_file, color, label):
 
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
@@ -98,7 +98,7 @@ def create_kml_line(json_position, output_file, color):
 
         positions_list.append((lon, lat))
     
-    ls = kml.newlinestring(name = "my test", coords = positions_list)
+    ls = kml.newlinestring(name = label, coords = positions_list)
 
     ls.style.linestyle.width = 3
 

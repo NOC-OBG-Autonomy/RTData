@@ -11,8 +11,8 @@ list_lat = []
 v_list = []
 u_list = []
 
-
-for unit in config.gliders_units:
+cols = ['7f0000ff', '7f00ff00', '7fff0000', '7fffff00', '7fff00ff', '7f00ffff'] # Blue, Green, Red, Yellow, Magenta, Cyan
+for i, unit in enumerate(config.gliders_units):
 
     #Get the last position of the glider
     pos = c2.get_positions(config.token, "slocum", unit, test = False)
@@ -36,7 +36,7 @@ for unit in config.gliders_units:
     u = u['value'].iloc[-1]
     u_list.append(u)
 
-    c2.create_kml_line(pos, config.save_path + unit + "_line.kmz", "990000ff")
+    c2.create_kml_line(pos, config.save_path + unit + "_line.kmz", cols[i%6], f'{str(unit)}_line')
     print("Done")
 
 
