@@ -1,3 +1,5 @@
+import time
+
 import requests
 from rtdata import config
 import pandas as pd
@@ -7,7 +9,7 @@ import io
 import simplekml
 
 
-def get_positions(token, platform_type, platform_serial, test = False, start_date = "2025-03-15T18:57"):
+def get_positions(token, platform_type, platform_serial, test = False, start_date = "2025-04-15T18:57"):
     """Returns the JSON response of the gliders positions 
 
     Args:
@@ -130,8 +132,6 @@ def create_kml_point(glider, longitude, latitude, m_water_x, m_water_y, output_f
     
     kml.save(output_file)
 
-
-
 def get_observations(token, platform_type, platform_serial, variables):
     """Returns the observation data (different from position data) from the C2 API.
 
@@ -177,8 +177,15 @@ if __name__ == '__main__':
     # test.to_csv('C:/Users/flapet/OneDrive - NOC/Documents/NRT_viz/biocarbon_nrt_data_viz/Data/Gliders/current.csv')
 
     #DOcumentation : https://api.c2.noc.ac.uk/timeseries/doc
-    unit_name = "unit_306"
-    path_of_file = f'{config.save_path}/{unit_name}_ts.csv'
-    ts = get_observations(config.token, 'slocum', unit_name, variables=["sci_water_pressure", "sci_water_temp",  "sci_water_cond", "m_lon", "m_lat", "sci_flbbcd_chlor_units", "sci_flbbcd_bb_units", "m_time", "sci_oxy4_oxygen"])
+    unit_name = "unit_927"
+    path_of_file = f'{config.save_path}/{unit_name}_{time.strftime('%Y-%m-%d')}.csv'
+    ts = get_observations(config.token, 'slocum', unit_name, variables=[
+        "sci_water_pressure", "sci_water_temp",  "sci_water_cond",
+        "m_lon", "m_lat", "sci_flbbcd_chlor_units",
+        "sci_flbbcd_bb_units", "m_time", "sci_oxy4_oxygen",
+        "sci_flbbbbv1_bb1_scaled", "sci_flbbbbv1_bb2_scaled", "sci_flbbbbv1_fl_scaled",
+        "sci_rbr_tridente_ch1_sig", "sci_rbr_tridente_ch2_sig", "sci_rbr_tridente_ch3_sig",
+        "m_final_water_vx", "m_final_water_vy", "m_de_oil_vol", "m_pitch"
+    ])
     ts.to_csv(path_of_file)
     print(f"File {path_of_file} saved")
